@@ -11,13 +11,11 @@ import { GameInfoComponent } from '../game-info/game-info.component';
 import { Firestore, collectionData, collection, addDoc, onSnapshot, doc } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-
 
 @Component({
   selector: 'app-game',
   standalone: true,
-  imports: [CommonModule, PlayerComponent, MatButtonModule, MatIconModule, MatDialogModule, GameInfoComponent, BrowserAnimationsModule],
+  imports: [CommonModule, PlayerComponent, MatButtonModule, MatIconModule, MatDialogModule, GameInfoComponent],
   templateUrl: './game.component.html',
   styleUrl: './game.component.scss'
 })
@@ -35,7 +33,7 @@ export class GameComponent {
 
     this.route.params.subscribe((params) => {
       let gameId = params['id']
-      console.log("Das ist meine aktuelle ID: ", gameId);
+      console.log("Das ist die aktuelle ID: ", gameId);
       onSnapshot(this.getSingleGameRef("games", gameId), (actualGame) => {
         let game:any = actualGame.data();
         console.log("Das aktuelle Spiel lautet: ", game);
