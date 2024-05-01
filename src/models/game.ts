@@ -16,6 +16,15 @@ export class Game {
 
   }
 
+  public toJsn() {
+    return {
+      players: this.players,
+      stack: this.stack,
+      playedCards: this.playedCards,
+      currentPlayer: this.currentPlayer
+    };
+  }
+
   private shuffle<T>(array: T[]): T[]  {
       let currentIndex = array.length;
   
