@@ -10,6 +10,10 @@
     >img {
         height: 100vh;
     }
+
+    @media (max-width: 960px) {
+        overflow: hidden;
+    }
 }
 
 .start-label-box {
@@ -25,9 +29,14 @@
         width: 40vw;
         height: auto;
 
+        @media (max-width: 960px) {
+            width: 400px;
+        }
+
         &:hover {
             filter: brightness(1.25);
             cursor: pointer;
         }
     }
+    
 }

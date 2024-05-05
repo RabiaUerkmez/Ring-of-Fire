@@ -1,5 +1,9 @@
 mat-card {
     color: whitesmoke;
+
+    @media (max-width: 720px) {
+        height: 120px;
+    }
 }
 
 mat-card-title {

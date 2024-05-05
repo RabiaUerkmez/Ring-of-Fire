@@ -8,55 +8,50 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { DialogAddPlayerComponent } from '../dialog-add-player/dialog-add-player.component';
 import { GameInfoComponent } from '../game-info/game-info.component';
-import { Firestore, collectionData, collection, addDoc, onSnapshot, doc } from '@angular/fire/firestore';
+import { Firestore, collectionData, collection, addDoc, onSnapshot, doc, setDoc } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
+import { PlayerMobileComponent } from '../player-mobile/player-mobile.component';
 
 @Component({
   selector: 'app-game',
   standalone: true,
-  imports: [CommonModule, PlayerComponent, MatButtonModule, MatIconModule, MatDialogModule, GameInfoComponent],
+  imports: [CommonModule, PlayerComponent, MatButtonModule, MatIconModule, MatDialogModule, GameInfoComponent, PlayerMobileComponent],
   templateUrl: './game.component.html',
   styleUrl: './game.component.scss'
 })
 export class GameComponent {
-  pickCardAnimation = false;
-  currentCard: string = '';
+
   game: Game = new Game();
+  gameId!: string;
 
   firestore: Firestore = inject(Firestore);
 
   constructor(private route: ActivatedRoute, public dialog: MatDialog) { }
 
   ngOnInit() {
-    this.newGame();
 
     this.route.params.subscribe((params) => {
-      let gameId = params['id']
-      console.log("Das ist die aktuelle ID: ", gameId);
-      onSnapshot(this.getSingleGameRef("games", gameId), (actualGame) => {
-        let game:any = actualGame.data();
-        console.log("Das aktuelle Spiel lautet: ", game);
-        
-        this.game.currentPlayer = game.currentplayer,
-        this.game.playedCards = game.playedCards;
-        this.game.players = game.players;
-        this.game.stack = game.stack;
+      this.gameId = params['id'];
+
+      onSnapshot(this.getSingleGameRef(), (actualGame) => {
+        let game: any = actualGame.data();
+        this.game.currentPlayer = game['currentPlayer'];
+        this.game.playedCards = game['playedCards'];
+        this.game.players = game['players'];
+        this.game.stack = game['stack'];
+        this.game.pickCardAnimation = game['pickCardAnimation'];
+        this.game.currentCard = game['currentCard'];
       })
     })
-
-    collectionData(this.getGamesRef())
-      .subscribe((gameson) => {
-        console.log("Die gesamte Array: ", gameson);
-      })
   }
 
   getGamesRef() {
     return collection(this.firestore, 'games');
   }
 
-  getSingleGameRef(colId: string, docId: string) {
-    return doc(collection(this.firestore, colId), docId);
+  getSingleGameRef() {
+    return doc(collection(this.firestore, 'games'), this.gameId);
   }
 
 
@@ -66,32 +61,29 @@ export class GameComponent {
     dialogRef.afterClosed().subscribe(name => {
       if (name && name.length > 0) {
         this.game.players.push(name);
+        this.updateGame(this.gameId, this.game);
       }
     });
   }
 
-  async newGame() {
-    this.game = new Game();
-
-    // let gameInfo = await addDoc(this.getGamesRef(), { game: this.game.toJsn() });
-    // console.log(gameInfo.id);
-
-  }
-
   takeCard() {
-    if (!this.pickCardAnimation) {
-      this.currentCard = this.game.stack.pop()!;
-      this.pickCardAnimation = true;
-
-      console.log(this.game);
-
+    if (!this.game.pickCardAnimation) {
+      this.game.currentCard = this.game.stack.pop()!;
+      this.game.pickCardAnimation = true;
       this.game.currentPlayer++;
       this.game.currentPlayer = this.game.currentPlayer % this.game.players.length;
+      this.updateGame(this.gameId, this.game);
+
       setTimeout(() => {
-        this.game.playedCards.push(this.currentCard);
-        this.pickCardAnimation = false;
+        this.game.playedCards.push(this.game.currentCard);
+        this.game.pickCardAnimation = false;
+        this.updateGame(this.gameId, this.game);
       }, 1000);
     }
+  }
+
+  async updateGame(id: string, game: Game) {
+    await setDoc(doc(this.getGamesRef(), id), game.toJsn());
   }
 
 }
